@@ -84,7 +84,7 @@ app.post("/login",async (req,res)=>{
     const isPasswordMatch = await bcrypt.compare(req.body.password, check.password);
     if(isPasswordMatch)
     {
-        //res.render("home");
+     //   res.render("home");
         res.send("go to home");
         
     }
@@ -100,7 +100,7 @@ app.post("/login",async (req,res)=>{
     }
 
 });
-
+//-------------------------------------------------------------
 app.post("/check",async(req,res)=>{
     const info =await driver.findOne({nic: req.body.nic});
     if(!info)
@@ -109,11 +109,58 @@ app.post("/check",async(req,res)=>{
     }
     else{
 
-        res.redirect(info.image);
+        //res.redirect(info.image);
+       // res.send(info.image);
+        res.send(
+          {image:info.image,
+          validity:info.validity});
     }
 
 });
+//---------------------------------------------------------------
+//add reason for block
+app.post("/comment", async (req,res)=>{
 
+ try{ 
+  
+  const userNIC = req.body.nic;
+  const newReason = {
+    pid: req.body.pid,
+    comment: req.body.comment,
+    date: new Date(),
+  };
+  
+  const user = await driver.findOne({ nic: req.body.nic });
+  
+ if (user) {
+
+   user.reasons.push(newReason);
+   await user.save();
+   res.send("New reason added successfully.");
+   console.log('New reason added successfully.');
+
+ } 
+ else {
+   
+  res.send(userNIC);
+   res.send('user not found');
+   console.log('User not found.'+newReason.pid);
+
+ }
+ }
+ catch(error)
+ {
+    res.send(error);
+    console.log(error);
+ } 
+ 
+});
+//---------------------------------
+
+
+
+
+//---------------------------------
 // Update route
 app.put('/update', async (req, res) => {
     const data = { name: req.body.username,
