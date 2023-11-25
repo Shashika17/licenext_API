@@ -104,7 +104,7 @@ app.post("/login",async (req,res)=>{
 app.post("/check",async(req,res)=>{
     const info =await driver.findOne({nic: req.body.nic});
     if(!info)
-    {
+    { 
         res.send("user not existing in system")
     }
     else{
@@ -113,7 +113,8 @@ app.post("/check",async(req,res)=>{
        // res.send(info.image);
         res.send(
           {image:info.image,
-          validity:info.validity});
+          validity:info.validity,
+          nic:info.nic});
     }
 
 });
@@ -155,13 +156,54 @@ app.post("/comment", async (req,res)=>{
  } 
  
 });
+//---------------------------------to retrive comments and other info------------
+app.get('/getReasons', async(req, res) => {
+
+const UserNIC = req.body.nic;
+
+try
+{
+const user = await driver.findOne({nic:UserNIC},'reasons');
+
+if(!user)
+{
+  return res.status(404).json({ error: 'User not found' });
+}
+res.json(user.reasons);
+}
+catch(error)
+{
+  console.log(error);
+}
+
+});
+//---------------for delete comments------------------
+app.delete('/delete', async(req,res) => {
+
+  const nic = req.body.nic;
+  const commentID = req.body._id;
+  try
+  {
+    const updateUser = await driver.findOneAndUpdate(
+      {nic},
+      {$pull:{reasons:{ _id:commentID}}},
+      {new: true}
+    );
+    if(!updateUser)
+    {
+      return res.status(404).json({ error: 'User not found ' });
+    }
+    res.send('Comment deleted successfully');
+  }
+  catch(error)
+  {
+     res.send(error);
+  }
+
+});
+
 //---------------------------------
-
-
-
-
-//---------------------------------
-// Update route
+// Update 
 app.put('/update', async (req, res) => {
     const data = { name: req.body.username,
                    password: req.body.password,
