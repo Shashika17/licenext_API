@@ -158,26 +158,23 @@ app.post("/comment", async (req,res)=>{
  
 });
 //---------------------------------to retrive comments and other info------------
-app.get('/getReasons', async(req, res) => {
+app.get('/getReasons/:nic', async (req, res) => {
+  const UserNIC = req.params.nic; // Use req.params to get the 'nic' parameter
 
-const UserNIC = req.body.nic;
+  try {
+    const user = await driver.findOne({ nic: UserNIC }, 'reasons');
 
-try
-{
-const user = await driver.findOne({nic:UserNIC},'reasons');
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
-if(!user)
-{
-  return res.status(404).json({ error: 'User not found' });
-}
-res.json(user.reasons);
-}
-catch(error)
-{
-  console.log(error);
-}
-
+    res.json(user.reasons);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal server error' }); // Return a generic error response
+  }
 });
+
 //---------------for delete comments------------------
 app.delete('/delete', async(req,res) => {
 
@@ -233,6 +230,7 @@ data.password = hashPassword;
     }
   });
 //---------------------------------------------------------------  
+//---change validities----------------------------------------
 app.put("/validity", async (req,res) => {
 
   const data=
