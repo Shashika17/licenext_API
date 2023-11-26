@@ -128,6 +128,7 @@ app.post("/comment", async (req,res)=>{
   const newReason = {
     pid: req.body.pid,
     comment: req.body.comment,
+    location : req.body.location,
     date: new Date(),
   };
   
@@ -143,8 +144,8 @@ app.post("/comment", async (req,res)=>{
  } 
  else {
    
-  res.send(userNIC);
-   res.send('user not found');
+  // res.send(userNIC);
+  // res.send('user not found');
    console.log('User not found.'+newReason.pid);
 
  }
@@ -232,6 +233,34 @@ data.password = hashPassword;
     }
   });
 //---------------------------------------------------------------  
+app.put("/validity", async (req,res) => {
+
+  const data=
+  {
+    nic: req.body.nic,
+    validity: req.body.validity
+  }
+  try
+  {
+     const updateDriver = await driver.findOneAndUpdate({nic : data.nic},
+      {validity : data.validity},
+      {new: true}
+      );
+      if (updateDriver) {
+        res.status(200).json({ message: 'User updated successfully', updateDriver });
+      } else {
+        res.status(404).json({ error: 'User not found' });
+      }
+  }
+  catch(error)
+  {
+     console.log(error);
+     res.send(error);
+     res.status(500).json({ error: 'Internal server error' });
+  }
+
+});
+
 
 const port = 5000;
 app.listen(port,()=>{
