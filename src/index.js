@@ -176,22 +176,22 @@ app.get('/getReasons/:nic', async (req, res) => {
 });
 
 //---------------for delete comments------------------
-app.delete('/delete', async(req,res) => {
+app.delete('/delete/:nic', async(req,res) => {
 
-  const nic = req.body.nic;
-  const commentID = req.body._id;
+  const nic = req.params.nic;
+
   try
   {
     const updateUser = await driver.findOneAndUpdate(
       {nic},
-      {$pull:{reasons:{ _id:commentID}}},
+      { $unset: { reasons: '' } },
       {new: true}
     );
     if(!updateUser)
     {
       return res.status(404).json({ error: 'User not found ' });
     }
-    res.send('Comment deleted successfully');
+    res.send('Comments deleted successfully');
   }
   catch(error)
   {
