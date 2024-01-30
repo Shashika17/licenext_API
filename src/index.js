@@ -1,10 +1,11 @@
 const express =require('express');
-const pasth = require("path");
+const path = require("path");
 const bcrypt = require("bcryptjs");
 const collection = require("./config")
 const driver = require("./driver")
 const cors = require('cors');
 const { Collection } = require('mongoose');
+const nodemailer = require("nodemailer");
 
 
 const app = express();
@@ -21,6 +22,18 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.set('view engine', 'ejs');
+
+//defineing  authorization information for  email service
+let transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  auth: {
+    user: "mr.decemberdevil@gmail.com",
+    pass: "uvza wcsp teak jepf",
+  },
+})
+
+
 
 app.get("/",(req,res) => {
     res.render("login");
@@ -259,8 +272,64 @@ app.put("/validity", async (req,res) => {
 
 });
 
+//########################################################################
+//---password rest functions -and mailing functions-----------------------
+
+function generateRandomNumber() {
+  // Math.floor(Math.random() * (max - min + 1)) + min
+  const min = 100000; // Minimum 6-digit number
+  const max = 999999; // Maximum 6-digit number
+
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+app.post ("/mailing",async (req,res)=>
+{
+
+  try {
+    const user = await collection.findOne({ name: req.body.pid });
+
+    if (!user || !user.email) {
+      return res.status(404).send("User not found or email not available");
+    }
+
+  console.log(user);
+   const OTP = generateRandomNumber(); 
+
+  // create a mail object with the user email and a confirmation message
+  let mail = {
+    from: "Licenext",
+    to:`${user.email}`,
+    subject: "Licenext Password recovery OTP",
+    text: `Hello ${user.name}, this your OTP .`,
+    html: `<p>${user.name} this is your OTP number please don't share this number with anyone</p></br>
+             <h1>${OTP}</h1>`,
+  };
+
+  // send the mail using the transporter object 
+  transporter.sendMail(mail, (error, info) => {
+    if (error) {
+      console.log(error);
+      res.status(500).send("Something went wrong");
+    } else {
+      console.log("Email sent: " + info.response);
+      res.status(200).send({OTP});
+    }
+  });
+}
+catch (error) {
+  console.error(error);
+  res.status(500).send("Internal Server Error");
+}
+})
+
+//########################################################################
+//------------------------------------------------------------------------
+
+
 
 const port = 5000;
 app.listen(port,()=>{
     console.log("\x1b[32m%s\x1b[0m","Server running on port:" +port);
 });
+
